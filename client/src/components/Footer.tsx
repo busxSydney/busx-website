@@ -101,7 +101,7 @@ export function Footer() {
                 </li>
                 <li className="flex items-start">
                   <i className="far fa-envelope text-[#FF8B00] mt-1 mr-3" style={{ strokeWidth: '1.5px' }}></i>
-                  <span className="text-gray-700">info@busx.com</span>
+                  <span className="text-gray-700">info@busx.com.au</span>
                 </li>
                 <li className="flex items-start">
                   <i className="far fa-clock text-[#FF8B00] mt-1 mr-3" style={{ strokeWidth: '1.5px' }}></i>

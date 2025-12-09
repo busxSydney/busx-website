@@ -16,13 +16,37 @@ const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
   phone: z.string().min(10, { message: "Please enter a valid phone number" }),
   service: z.string().optional(),
-  message: z.string().min(10, { message: "Message must be at least 10 characters" }),
+  message: z
+    .string()
+    .optional()
+    .or(z.literal(""))
+    .refine(
+      (val) => {
+        if (!val || val.trim().length === 0) return true;
+        return val.trim().length >= 10;
+      },
+      { message: "Message must be at least 10 characters if provided" }
+    ),
   tripType: z.enum(['single', 'round']),
   startFrom: z.string().min(2, { message: "Please enter a valid start location" }),
   endTo: z.string().min(2, { message: "Please enter a valid end location" }),
-  date: z.string().min(1, { message: "Please select a date" }),
+  date: z
+    .string()
+    .min(1, { message: "Please select a date" })
+    .refine((val) => {
+      const selected = new Date(`${val}T00:00:00`);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return !isNaN(selected.getTime()) && selected >= today;
+    }, { message: "Date cannot be in the past" }),
   time: z.string().min(1, { message: "Please select a time" }),
-  company: z.string().min(1, { message: "Please enter a valid number of passengers" }),
+  company: z
+    .string()
+    .min(1, { message: "Please select the number of passengers" })
+    .refine((val) => {
+      const num = Number(val);
+      return Number.isInteger(num) && num >= 1 && num <= 21;
+    }, { message: "Passengers must be between 1 and 21" }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -43,7 +67,7 @@ export function ContactSection() {
       endTo: "",
       date: "",
       time: "",
-      company: "",
+      company: "1",
     },
   });
 
@@ -95,12 +119,13 @@ export function ContactSection() {
         </motion.div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Contact Info - Now on the left */}
+          {/* Contact Info - Now on the left (desktop), after form on mobile */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.5, delay: 0.2 }}
+            className="order-2 lg:order-1"
           >
             <div className="bg-[#0D2E4D] text-white rounded-xl p-8 mb-8">
               <h3 className="text-2xl font-semibold mb-6">Get in Touch</h3>
@@ -121,7 +146,7 @@ export function ContactSection() {
                 </div>
                 <div>
                   <h4 className="font-semibold mb-1">Email Address</h4>
-                  <p className="text-gray-300">info@busx.com</p>
+                  <p className="text-gray-300">info@busx.com.au</p>
                 </div>
               </div>
             </div>
@@ -152,7 +177,7 @@ export function ContactSection() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.5 }}
-            className="bg-white rounded-xl shadow-md p-8"
+            className="bg-white rounded-xl shadow-md p-8 order-1 lg:order-2"
           >
             <h3 className="text-2xl font-semibold mb-6">Book Your Trip</h3>
             
@@ -230,7 +255,8 @@ export function ContactSection() {
                             <Input 
                               {...field} 
                               type="date"
-                              className="px-4 pr-10 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#FF8B00] [&::-webkit-calendar-picker-indicator]:hidden" 
+                              min={new Date().toISOString().split("T")[0]}
+                              className="px-4 pr-10 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#FF8B00] [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                             />
                             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                               <i className="far fa-calendar text-gray-400" style={{ strokeWidth: '1.5px' }}></i>
@@ -253,13 +279,7 @@ export function ContactSection() {
                             <Input 
                               {...field} 
                               type="time" 
-                              className="px-4 pr-10 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#FF8B00] [&::-webkit-calendar-picker-indicator]:hidden"
-                              style={{
-                                appearance: 'none',
-                                WebkitAppearance: 'none',
-                                MozAppearance: 'none',
-                                backgroundColor: 'transparent',
-                              }}
+                              className="px-4 pr-10 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#FF8B00] [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                             />
                             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                               <i className="far fa-clock text-gray-400" style={{ strokeWidth: '1.5px' }}></i>
@@ -337,10 +357,24 @@ export function ContactSection() {
                       <FormItem>
                         <FormLabel className="text-gray-700 mb-1">No of Passengers</FormLabel>
                         <FormControl>
-                          <Input 
-                            {...field}
-                            className="px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#FF8B00]" 
-                          />
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger className="px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#FF8B00]">
+                              <SelectValue placeholder="Select passengers" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Array.from({ length: 21 }, (_, idx) => {
+                                const val = (idx + 1).toString();
+                                return (
+                                  <SelectItem key={val} value={val}>
+                                    {val}
+                                  </SelectItem>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
