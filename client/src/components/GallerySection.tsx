@@ -24,6 +24,8 @@ import snowParty from "../assets/gallery-renamed/snow_party.jpeg";
 import snowParty1 from "../assets/gallery-renamed/snow_party_1.jpeg";
 import trip1 from "../assets/gallery-renamed/trip1.jpeg";
 import trip2 from "../assets/gallery-renamed/trip2.jpeg";
+import trip3 from "../assets/gallery-renamed/trip3.jpeg";
+import trip4 from "../assets/gallery-renamed/trip4.jpeg";
 
 // Import video files
 import travelExperienceVideo from "../assets/gallery-renamed/travel_experience.mp4";
@@ -143,7 +145,17 @@ const galleryItems: GalleryItem[] = [
     src: trip2,
     type: "image",
     alt: "Trip"
-  }
+  },
+  {
+    src: trip3,
+    type: "image",
+    alt: "Trip"
+  },
+  {
+    src: trip4,
+    type: "image",
+    alt: "Trip"
+  },
   // {
   //   src: travelExperienceVideo,
   //   thumbnail: travelExperienceThumbnail,

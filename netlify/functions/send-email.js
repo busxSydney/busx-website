@@ -170,7 +170,7 @@ Received on ${new Date().toLocaleString('en-AU', { timeZone: 'Australia/Sydney' 
     // Send email using Resend
     const data = await resend.emails.send({
       from: 'Bus-X Bookings <onboarding@resend.dev>',
-      to: ['info@busx.com.au'],
+      to: ['info@busx.com.au', 'shidiqadm@gmail.com'],
       replyTo: email,
       subject: `New booking enquiry from ${name}`,
       html: htmlContent,
