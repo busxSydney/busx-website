@@ -2,6 +2,12 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+const resendFrom = process.env.RESEND_FROM;
+const resendTo = (process.env.RESEND_TO || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+
 export const handler = async (event) => {
   // Only allow POST requests
   if (event.httpMethod !== 'POST') {
@@ -12,6 +18,19 @@ export const handler = async (event) => {
   }
 
   try {
+    if (!process.env.RESEND_API_KEY || !resendFrom || resendTo.length === 0) {
+      return {
+        statusCode: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          success: false,
+          error: 'Email service is not configured',
+        }),
+      };
+    }
+
     const { name, email, phone, service, message, tripType, startFrom, endTo, date, time, company } = JSON.parse(event.body);
 
     // Validate required fields
@@ -169,8 +188,8 @@ Received on ${new Date().toLocaleString('en-AU', { timeZone: 'Australia/Sydney' 
 
     // Send email using Resend
     const data = await resend.emails.send({
-      from: 'Bus-X Bookings <onboarding@resend.dev>',
-      to: ['info@busx.com.au', 'shidiqadm@gmail.com'],
+      from: resendFrom,
+      to: resendTo,
       replyTo: email,
       subject: `New booking enquiry from ${name}`,
       html: htmlContent,
